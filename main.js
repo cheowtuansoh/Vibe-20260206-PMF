@@ -102,23 +102,29 @@ class ActivityTable extends HTMLElement {
                     top: 0;
                     cursor: pointer; /* Indicate sortable */
                 }
+                th.sortable {
+                    position: relative; /* Needed for positioning the ::after pseudo-element */
+                    padding-right: 20px; /* Make space for the icon */
+                }
                 th.sortable:after {
-                    content: '';
-                    display: inline-block;
-                    width: 0;
-                    height: 0;
-                    margin-left: 5px;
-                    vertical-align: middle;
+                    content: '↑↓'; /* Default unsorted indicator */
+                    position: absolute;
+                    right: 5px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    font-size: 0.8em; /* Make it a bit smaller */
+                    color: #aaa; /* Lighter color for unsorted */
+                    transition: color 0.2s ease;
                 }
                 th.sortable.asc:after {
-                    border-left: 4px solid transparent;
-                    border-right: 4px solid transparent;
-                    border-bottom: 4px solid #333;
+                    content: '↑'; /* Ascending indicator */
+                    color: #333; /* Darker color when sorted */
+                    font-size: 1em; /* More prominent */
                 }
                 th.sortable.desc:after {
-                    border-left: 4px solid transparent;
-                    border-right: 4px solid transparent;
-                    border-top: 4px solid #333;
+                    content: '↓'; /* Descending indicator */
+                    color: #333; /* Darker color when sorted */
+                    font-size: 1em; /* More prominent */
                 }
             </style>
             <div class="activity-table-container">
