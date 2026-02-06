@@ -131,6 +131,7 @@ class ActivityTable extends HTMLElement {
                 <table id="activitiesTable">
                     <thead>
                         <tr>
+                            <th>Name</th> <!-- New column for name -->
                             <th>Activity Info</th>
                             <th>Schedule Date and Time</th>
                             <th>Place</th>
@@ -164,6 +165,7 @@ class ActivityTable extends HTMLElement {
 
         const row = tbody.insertRow();
         row.setAttribute('data-index', index); // Store index on the row itself
+        row.insertCell().textContent = activity['Name'] || 'N/A'; // Display the new Name field
         row.insertCell().textContent = activity['Activity Info'] || 'N/A';
         row.insertCell().textContent = activity['Schedule Date and Time'] || 'N/A';
         row.insertCell().textContent = activity['Place'] || 'N/A';
@@ -335,6 +337,7 @@ async function mockGeminiApi(text) {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
+    let name = 'N/A'; // New field for name
     let activityInfo = 'General Activity';
     let scheduleDateAndTime = 'TBD';
     let place = 'TBD';
@@ -342,6 +345,14 @@ async function mockGeminiApi(text) {
 
     // Reference date for calculations (Friday, February 6, 2026)
     const referenceDate = new Date('2026-02-06T12:00:00');
+
+    // --- Extract Name ---
+    const nameRegex = /^([A-Z][a-z]+)\s+(has|is|will\s+be|needs\s+to|going\s+to)/;
+    const nameMatch = text.match(nameRegex);
+    if (nameMatch) {
+        name = nameMatch[1];
+    }
+
 
     // --- Extract Activity Info ---
     const activityKeywords = ['tuition', 'practice', 'class', 'meeting', 'appointment', 'session'];
@@ -396,6 +407,7 @@ async function mockGeminiApi(text) {
     return {
         activities: [
             {
+                "Name": name, // Include the extracted name
                 "Activity Info": activityInfo,
                 "Schedule Date and Time": scheduleDateAndTime,
                 "Place": place,
