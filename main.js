@@ -338,7 +338,7 @@ async function mockGeminiApi(text) {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     let name = 'N/A'; // New field for name
-    let activityInfo = 'General Activity';
+    let activityInfo = '';
     let scheduleDateAndTime = 'TBD';
     let place = 'TBD';
     let remark = '';
@@ -369,6 +369,21 @@ async function mockGeminiApi(text) {
     // More specific parsing for "Chinese tuition"
     if (text.toLowerCase().includes('chinese tuition')) {
         activityInfo = 'Chinese Tuition';
+    }
+
+    // If activityInfo is still empty, try to extract a more general activity description
+    if (!activityInfo) {
+        // Regex to capture common activity descriptions.
+        // This attempts to find a phrase between the name/time and place/remark.
+        // It's a heuristic and might need refinement based on actual input patterns.
+        const generalActivityRegex = /(?:has|is|will be|needs to|going to)\s+([\w\s-]+?(?=\s+(at|in|on)\s+|$))/i;
+        const generalMatch = text.match(generalActivityRegex);
+        if (generalMatch && generalMatch[1]) {
+            activityInfo = generalMatch[1].trim();
+        } else {
+            // Fallback if no specific or general activity is found
+            activityInfo = 'General Activity';
+        }
     }
 
 
