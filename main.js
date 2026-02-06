@@ -100,30 +100,25 @@ class ActivityTable extends HTMLElement {
                     font-weight: bold;
                     position: sticky;
                     top: 0;
+                    cursor: pointer; /* Indicate sortable */
                 }
-                tbody tr:nth-child(even) {
-                    background-color: #f6f6f6;
+                th.sortable:after {
+                    content: '';
+                    display: inline-block;
+                    width: 0;
+                    height: 0;
+                    margin-left: 5px;
+                    vertical-align: middle;
                 }
-                tbody tr:hover {
-                    background-color: #e9f7ef;
+                th.sortable.asc:after {
+                    border-left: 4px solid transparent;
+                    border-right: 4px solid transparent;
+                    border-bottom: 4px solid #333;
                 }
-                .no-activities {
-                    text-align: center;
-                    padding: 20px;
-                    color: #777;
-                }
-                .delete-btn {
-                    background-color: #dc3545; /* Red color for delete */
-                    color: white;
-                    border: none;
-                    padding: 6px 10px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 0.85rem;
-                    transition: background-color 0.2s ease;
-                }
-                .delete-btn:hover {
-                    background-color: #c82333;
+                th.sortable.desc:after {
+                    border-left: 4px solid transparent;
+                    border-right: 4px solid transparent;
+                    border-top: 4px solid #333;
                 }
             </style>
             <div class="activity-table-container">
@@ -131,9 +126,9 @@ class ActivityTable extends HTMLElement {
                 <table id="activitiesTable">
                     <thead>
                         <tr>
-                            <th>Name</th> <!-- New column for name -->
-                            <th>Activity Info</th>
-                            <th>Schedule Date and Time</th>
+                            <th id="sortName" class="sortable">Name</th> <!-- New column for name -->
+                            <th id="sortActivityInfo" class="sortable">Activity Info</th>
+                            <th id="sortScheduleDateTime" class="sortable">Schedule Date and Time</th>
                             <th>Place</th>
                             <th>Remark</th>
                             <th>Action</th> <!-- New column for delete button -->
@@ -147,12 +142,19 @@ class ActivityTable extends HTMLElement {
             </div>
         `;
         this._activities = []; // Array to store activity objects
+        this._sortColumn = null;
+        this._sortDirection = 'asc'; // 'asc' or 'desc'
     }
 
     connectedCallback() {
         this._loadActivitiesFromLocalStorage();
         // Event delegation for delete buttons
         this.shadowRoot.getElementById('activitiesTable').addEventListener('click', this._deleteActivity.bind(this));
+
+        // Add event listeners for sorting
+        this.shadowRoot.getElementById('sortName').addEventListener('click', () => this._sortActivities('Name'));
+        this.shadowRoot.getElementById('sortActivityInfo').addEventListener('click', () => this._sortActivities('Activity Info'));
+        this.shadowRoot.getElementById('sortScheduleDateTime').addEventListener('click', () => this._sortActivities('Schedule Date and Time'));
     }
 
     _renderActivity(activity, index) {
@@ -179,9 +181,51 @@ class ActivityTable extends HTMLElement {
         actionCell.appendChild(deleteButton);
     }
 
+    _sortActivities(column) {
+        if (this._sortColumn === column) {
+            this._sortDirection = (this._sortDirection === 'asc') ? 'desc' : 'asc';
+        } else {
+            this._sortColumn = column;
+            this._sortDirection = 'asc';
+        }
+
+        this._activities.sort((a, b) => {
+            const valA = a[column] || '';
+            const valB = b[column] || '';
+
+            if (column === 'Schedule Date and Time') {
+                // Custom sorting for dates, handling 'TBD'
+                const dateA = valA === 'TBD' ? new Date(0) : new Date(valA); // Use epoch for TBD
+                const dateB = valB === 'TBD' ? new Date(0) : new Date(valB);
+                if (this._sortDirection === 'asc') {
+                    return dateA.getTime() - dateB.getTime();
+                } else {
+                    return dateB.getTime() - dateA.getTime();
+                }
+            } else {
+                // Default string comparison
+                if (this._sortDirection === 'asc') {
+                    return valA.localeCompare(valB);
+                } else {
+                    return valB.localeCompare(valA);
+                }
+            }
+        });
+        this._clearAndRenderAllActivities();
+    }
+
     _clearAndRenderAllActivities() {
         const tbody = this.shadowRoot.getElementById('activitiesTable').querySelector('tbody');
         tbody.innerHTML = ''; // Clear existing rows
+
+        // Update sort indicators
+        this.shadowRoot.querySelectorAll('th.sortable').forEach(th => {
+            th.classList.remove('asc', 'desc');
+            if (this._sortColumn && th.id === `sort${this._sortColumn.replace(/\s/g, '')}`) {
+                th.classList.add(this._sortDirection);
+            }
+        });
+
         if (this._activities.length === 0) {
             const noActivitiesMessage = this.shadowRoot.getElementById('noActivitiesMessage');
             if (noActivitiesMessage) {
