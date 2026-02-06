@@ -1,8 +1,8 @@
-# Vibe Application Blueprint
+# Activio-PMF(Parents Manage Family) Application Blueprint
 
 ## Overview
 
-Vibe is a web application designed for parents to manage and declutter activity notifications for their children. It provides a simple interface to input unstructured text about upcoming activities, which is then processed by an AI to extract key information and display it in an organized table.
+Activio-PMF(Parents Manage Family) is a web application designed for parents to manage and declutter activity notifications for their children. It provides a simple interface to input unstructured text about upcoming activities, which is then processed by an AI to extract key information and display it in an organized table.
 
 ## User Profile
 
