@@ -194,9 +194,8 @@ class ActivityTable extends HTMLElement {
             const valB = b[column] || '';
 
             if (column === 'Schedule Date and Time') {
-                // Custom sorting for dates, handling 'TBD'
-                const dateA = valA === 'TBD' ? new Date(0) : new Date(valA); // Use epoch for TBD
-                const dateB = valB === 'TBD' ? new Date(0) : new Date(valB);
+                const dateA = this._parseSortableDate(valA);
+                const dateB = this._parseSortableDate(valB);
                 if (this._sortDirection === 'asc') {
                     return dateA.getTime() - dateB.getTime();
                 } else {
@@ -263,6 +262,23 @@ class ActivityTable extends HTMLElement {
 
     _saveActivitiesToLocalStorage() {
         localStorage.setItem('activio-activities', JSON.stringify(this._activities));
+    }
+
+    // Helper function for consistent date parsing during sort
+    _parseSortableDate(dateString) {
+        if (dateString === 'TBD' || !dateString) {
+            return new Date(0); // Epoch for TBD or empty dates, so they sort to the beginning
+        }
+        // Attempt to parse the date. Be careful with various formats.
+        // The format from parseDateAndTime is "Weekday, Month Day, Year, HH:MM AM/PM"
+        // JavaScript's Date.parse is quite robust but explicit handling is safer.
+        const parsedDate = new Date(dateString);
+        if (isNaN(parsedDate.getTime())) {
+            // Fallback for dates that couldn't be parsed by Date constructor
+            console.warn('Could not parse date string for sorting:', dateString);
+            return new Date(0); // Fallback to epoch
+        }
+        return parsedDate;
     }
 }
 customElements.define('activity-table', ActivityTable);
