@@ -1,1 +1,158 @@
-/* Add styles here */
+/* General Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header Styling */
+header {
+    background-color: #4CAF50; /* A pleasant green */
+    color: white;
+    padding: 1rem 0;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+}
+
+/* Main Content Area */
+main {
+    flex-grow: 1;
+    padding: 20px;
+    max-width: 900px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Web Component Base Styling */
+activity-input, activity-table {
+    display: block; /* Custom elements often need this */
+    margin-bottom: 20px;
+}
+
+/* Input Form Styling */
+.activity-input-container {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.activity-input-container textarea {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.activity-input-container button {
+    background-color: #007BFF; /* A vibrant blue */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.activity-input-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Styling */
+.activity-table-container {
+    overflow-x: auto; /* Ensures table is scrollable on small screens */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table thead {
+    background-color: #e9ecef;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    color: #555;
+    font-weight: bold;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f6f6f6;
+}
+
+table tbody tr:hover {
+    background-color: #e9f7ef; /* Light green hover effect */
+}
+
+/* Footer Styling */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: auto;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    main {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    table th, table td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .activity-input-container textarea {
+        min-height: 80px;
+    }
+
+    .activity-input-container button {
+        width: 100%;
+        padding: 12px;
+    }
+}
