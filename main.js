@@ -44,7 +44,7 @@ class ActivityInput extends HTMLElement {
             <div class="activity-input-container">
                 <h2>Enter Activity</h2>
                 <textarea id="activityText" placeholder="Paste or type activity notifications here..."></textarea>
-                <button id="processButton">Process Activities</button>
+                <button id="processButton">Add Activity</button>
             </div>
         `;
     }
