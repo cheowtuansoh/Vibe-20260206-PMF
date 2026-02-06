@@ -152,9 +152,29 @@ class ActivityTable extends HTMLElement {
         this.shadowRoot.getElementById('activitiesTable').addEventListener('click', this._deleteActivity.bind(this));
 
         // Add event listeners for sorting
-        this.shadowRoot.getElementById('sortName').addEventListener('click', () => this._sortActivities('Name'));
-        this.shadowRoot.getElementById('sortActivityInfo').addEventListener('click', () => this._sortActivities('Activity Info'));
-        this.shadowRoot.getElementById('sortScheduleDateTime').addEventListener('click', () => this._sortActivities('Schedule Date and Time'));
+        const sortNameTh = this.shadowRoot.getElementById('sortName');
+        const sortActivityInfoTh = this.shadowRoot.getElementById('sortActivityInfo');
+        const sortScheduleDateTimeTh = this.shadowRoot.getElementById('sortScheduleDateTime');
+
+        if (sortNameTh) {
+            sortNameTh.addEventListener('click', () => {
+                console.log('Sort Name clicked');
+                this._sortActivities('Name');
+            });
+        }
+        if (sortActivityInfoTh) {
+            sortActivityInfoTh.addEventListener('click', () => {
+                console.log('Sort Activity Info clicked');
+                this._sortActivities('Activity Info');
+            });
+        }
+        if (sortScheduleDateTimeTh) {
+            sortScheduleDateTimeTh.addEventListener('click', () => {
+                console.log('Sort Schedule Date and Time clicked');
+                this._sortActivities('Schedule Date and Time');
+            });
+        }
+        console.log('ActivityTable connectedCallback: Sorting event listeners added.');
     }
 
     _renderActivity(activity, index) {
@@ -182,12 +202,17 @@ class ActivityTable extends HTMLElement {
     }
 
     _sortActivities(column) {
+        console.log(`_sortActivities called for column: ${column}, current sortColumn: ${this._sortColumn}, current sortDirection: ${this._sortDirection}`);
+
         if (this._sortColumn === column) {
             this._sortDirection = (this._sortDirection === 'asc') ? 'desc' : 'asc';
         } else {
             this._sortColumn = column;
             this._sortDirection = 'asc';
         }
+
+        console.log(`New sort state: column: ${this._sortColumn}, direction: ${this._sortDirection}`);
+        console.log('Activities before sort:', JSON.stringify(this._activities.map(a => `${a['Name']}-${a['Activity Info']}-${a['Schedule Date and Time']}`)));
 
         this._activities.sort((a, b) => {
             const valA = a[column] || '';
@@ -210,6 +235,7 @@ class ActivityTable extends HTMLElement {
                 }
             }
         });
+        console.log('Activities after sort:', JSON.stringify(this._activities.map(a => `${a['Name']}-${a['Activity Info']}-${a['Schedule Date and Time']}`)));
         this._clearAndRenderAllActivities();
     }
 
