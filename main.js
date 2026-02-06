@@ -5,6 +5,9 @@ class ActivityInput extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: 'open' });
+        this._uploadedPdfText = ''; // Store extracted text from PDF
+        this._pdfFileName = ''; // Store the name of the uploaded PDF file
+
         shadow.innerHTML = `
             <style>
                 .activity-input-container {
@@ -25,7 +28,7 @@ class ActivityInput extends HTMLElement {
                     min-height: 120px;
                     box-sizing: border-box; /* Include padding and border in the element's total width and height */
                 }
-                button {
+                button, .upload-btn-label {
                     background-color: #007BFF;
                     color: white;
                     padding: 10px 20px;
@@ -36,35 +39,115 @@ class ActivityInput extends HTMLElement {
                     transition: background-color 0.3s ease;
                     width: 100%; /* Make button full width */
                     box-sizing: border-box;
+                    text-align: center;
+                    display: inline-block;
                 }
-                button:hover {
+                button:hover, .upload-btn-label:hover {
                     background-color: #0056b3;
+                }
+                #pdfUpload {
+                    display: none;
+                }
+                .or-divider {
+                    text-align: center;
+                    margin: 20px 0;
+                    font-weight: bold;
+                    color: #888;
+                }
+                #pdfStatus {
+                    margin-top: 10px;
+                    font-size: 0.9em;
+                    color: #555;
+                    text-align: center;
                 }
             </style>
             <div class="activity-input-container">
                 <h2>Enter Activity</h2>
                 <textarea id="activityText" placeholder="Paste or type activity notifications here..."></textarea>
                 <button id="processButton">Add Activity</button>
+                <div class="or-divider">OR</div>
+                <label for="pdfUpload" class="upload-btn-label">Upload PDF</label>
+                <input type="file" id="pdfUpload" accept="application/pdf">
+                <p id="pdfStatus">No PDF selected.</p>
             </div>
         `;
     }
 
     connectedCallback() {
         this.shadowRoot.getElementById('processButton').addEventListener('click', this._processInput.bind(this));
+        this.shadowRoot.getElementById('pdfUpload').addEventListener('change', this._handlePdfUpload.bind(this));
+    }
+
+    _handlePdfUpload(event) {
+        const file = event.target.files[0];
+        const pdfStatusElement = this.shadowRoot.getElementById('pdfStatus');
+        pdfStatusElement.textContent = 'Processing PDF...';
+
+        if (!file || file.type !== 'application/pdf') {
+            if(file) alert('Please select a valid PDF file.');
+            this._uploadedPdfText = '';
+            this._pdfFileName = '';
+            pdfStatusElement.textContent = 'No PDF selected.';
+            return;
+        }
+
+        this._pdfFileName = file.name;
+
+        const fileReader = new FileReader();
+        fileReader.onload = async () => {
+            const typedarray = new Uint8Array(fileReader.result);
+            
+            // Set worker source for pdfjsLib
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+
+            try {
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+
+                if (fullText.trim()) {
+                    this._uploadedPdfText = fullText;
+                    pdfStatusElement.textContent = `PDF uploaded: ${this._pdfFileName}`;
+                    alert(`PDF file "${this._pdfFileName}" processed successfully.`);
+                } else {
+                    this._uploadedPdfText = '';
+                    pdfStatusElement.textContent = 'No text extracted from PDF.';
+                    alert('Could not extract any text from the PDF.');
+                }
+            } catch (error) {
+                console.error('Error processing PDF:', error);
+                this._uploadedPdfText = '';
+                pdfStatusElement.textContent = 'Error processing PDF.';
+                alert('Error processing PDF. Please try again or use text input.');
+            }
+        };
+        fileReader.readAsArrayBuffer(file);
     }
 
     _processInput() {
         const activityText = this.shadowRoot.getElementById('activityText').value;
-        if (activityText.trim()) {
-            // Dispatch a custom event with the input text
+        const pdfText = this._uploadedPdfText;
+        const pdfStatusElement = this.shadowRoot.getElementById('pdfStatus');
+
+        if (activityText.trim() || pdfText.trim()) {
+            // Dispatch a custom event with the input text and PDF text
             this.dispatchEvent(new CustomEvent('activity-submitted', {
-                detail: { text: activityText },
+                detail: { text: activityText, pdfText: pdfText },
                 bubbles: true,
                 composed: true
             }));
             this.shadowRoot.getElementById('activityText').value = ''; // Clear textarea
+            this._uploadedPdfText = ''; // Clear uploaded PDF text
+            this._pdfFileName = ''; // Clear PDF file name
+            pdfStatusElement.textContent = 'No PDF selected.'; // Reset PDF status
         } else {
-            alert('Please enter some activity text.');
+            alert('Please enter some activity text or upload a PDF.');
         }
     }
 }
@@ -315,13 +398,19 @@ customElements.define('activity-table', ActivityTable);
 // 3. Main application logic for handling events and API calls
 document.addEventListener('activity-submitted', async (event) => {
     const inputText = event.detail.text;
+    const inputPdfText = event.detail.pdfText || ''; // Get PDF text, default to empty string
+    const combinedText = inputText + '\n' + inputPdfText; // Combine for processing
+
     console.log('Activity text submitted:', inputText);
+    if (inputPdfText) {
+        console.log('PDF text submitted:', inputPdfText);
+    }
 
     // Get the activity table component
     const activityTable = document.querySelector('activity-table');
 
     // Mock API call to Gemini
-    const processedData = await mockGeminiApi(inputText);
+    const processedData = await mockGeminiApi(combinedText); // Pass combined text
 
     if (processedData && processedData.activities) {
         processedData.activities.forEach(activity => {
@@ -419,11 +508,13 @@ function parseDateAndTime(text, referenceDate) {
 }
 
 // Mock Gemini API call
-async function mockGeminiApi(text) {
-    console.log('Mocking Gemini API call with text:', text);
+async function mockGeminiApi(combinedText) {
+    console.log('Mocking Gemini API call with combined text:', combinedText);
 
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const text = combinedText; // Use combinedText for parsing logic
 
     let name = 'N/A'; // New field for name
     let activityInfo = '';
