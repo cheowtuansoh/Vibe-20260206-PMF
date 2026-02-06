@@ -103,28 +103,40 @@ class ActivityTable extends HTMLElement {
                     cursor: pointer; /* Indicate sortable */
                 }
                 th.sortable {
-                    position: relative; /* Needed for positioning the ::after pseudo-element */
-                    padding-right: 20px; /* Make space for the icon */
+                    position: relative;
+                    padding-right: 20px; /* Make space for icons */
                 }
-                th.sortable:after {
-                    content: '↑↓'; /* Default unsorted indicator */
+                th.sortable::before,
+                th.sortable::after {
+                    content: '';
                     position: absolute;
                     right: 5px;
-                    top: 50%;
+                    font-size: 0.7em; /* Smaller by default */
+                    line-height: 1; /* Adjust line height for positioning */
+                    color: #ccc; /* Subtle color */
+                }
+                th.sortable::before {
+                    content: '↑';
+                    top: 35%; /* Position up arrow */
                     transform: translateY(-50%);
-                    font-size: 0.8em; /* Make it a bit smaller */
-                    color: #aaa; /* Lighter color for unsorted */
-                    transition: color 0.2s ease;
                 }
-                th.sortable.asc:after {
-                    content: '↑'; /* Ascending indicator */
-                    color: #333; /* Darker color when sorted */
-                    font-size: 1em; /* More prominent */
+                th.sortable::after {
+                    content: '↓';
+                    top: 65%; /* Position down arrow */
+                    transform: translateY(-50%);
                 }
-                th.sortable.desc:after {
-                    content: '↓'; /* Descending indicator */
-                    color: #333; /* Darker color when sorted */
-                    font-size: 1em; /* More prominent */
+                th.sortable.asc::before {
+                    color: #333; /* Darker for active sort */
+                    font-size: 0.9em; /* More prominent */
+                }
+                th.sortable.desc::after {
+                    color: #333; /* Darker for active sort */
+                    font-size: 0.9em; /* More prominent */
+                }
+                /* Hide inactive arrow when sorted */
+                th.sortable.asc::after,
+                th.sortable.desc::before {
+                    color: transparent; /* or display: none; */
                 }
             </style>
             <div class="activity-table-container">
